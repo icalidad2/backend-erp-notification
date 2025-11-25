@@ -67,6 +67,18 @@ app.post("/notification", (req, res) => {
 });
 
 // ======================================
+//  STATUS ENDPOINT (para popup.html)
+// ======================================
+app.get("/", (req, res) => {
+  res.json({
+    ok: true,
+    status: "online",
+    message: "Servidor activo",
+    time: new Date().toISOString()
+  });
+});
+
+// ======================================
 //  SERVER LISTEN
 // ======================================
 const port = process.env.PORT || 8080;
