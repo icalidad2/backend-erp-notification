@@ -7,49 +7,52 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Crear servidor HTTP + WebSocket
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const clients = new Map();
+/* ============================================================
+   MANEJO DE CONEXIONES WEBSOCKET (CON CANALES)
+   ============================================================ */
+wss.on("connection", (ws) => {
+  console.log("Cliente conectado");
 
-// ======================================
-//  WEBSOCKET CONNECTIONS
-// ======================================
-wss.on("connection", ws => {
-  ws.on("message", msg => {
+  ws.on("message", (raw) => {
     try {
-      const data = JSON.parse(msg);
+      const data = JSON.parse(raw);
 
+      // Registro del canal
       if (data.type === "register") {
-        clients.set(data.email, ws);
-        console.log("Usuario conectado:", data.email);
+        ws.channel = data.channel || "global";
+        console.log("Cliente registrado en canal:", ws.channel);
       }
+
     } catch (e) {
-      console.error("Error parsing:", e);
+      console.error("Error al parsear WS:", e);
     }
   });
 
   ws.on("close", () => {
-    for (const [email, socket] of clients.entries()) {
-      if (socket === ws) clients.delete(email);
-    }
+    console.log("Cliente desconectado:", ws.channel || "sin canal");
   });
 });
 
-// ======================================
-//  ENDPOINT KEEP-ALIVE (PINGS)
-// ======================================
+/* ============================================================
+   ENDPOINT PING (KEEP-ALIVE DESDE APPS SCRIPT)
+   ============================================================ */
 app.get("/ping", (req, res) => {
   res.status(200).send("pong");
 });
 
-// ======================================
-//  NOTIFICACIÓN DESDE APPSHEET
-// ======================================
+/* ============================================================
+   ENDPOINT /notification (LEGACY PARA EMAIL, SIGUE FUNCIONANDO)
+   ============================================================ */
+const clients = new Map(); // soporte legacy basado en email
+
 app.post("/notification", (req, res) => {
   const { email, title, description } = req.body;
 
-  console.log("POST recibido", req.body);
+  console.log("POST recibido (legacy)", req.body);
 
   const client = clients.get(email);
 
@@ -58,7 +61,7 @@ app.post("/notification", (req, res) => {
       JSON.stringify({
         event: "notification",
         title,
-        description
+        description,
       })
     );
   }
@@ -66,48 +69,44 @@ app.post("/notification", (req, res) => {
   res.json({ ok: true });
 });
 
-// ======================================
-//  STATUS ENDPOINT (para popup.html)
-// ======================================
-app.get("/", (req, res) => {
-  res.json({
-    ok: true,
-    status: "online",
-    message: "Servidor activo",
-    time: new Date().toISOString()
-  });
-});
-
-// ======================================
-//  SERVER LISTEN
-// ======================================
-const port = process.env.PORT || 8080;
-server.listen(port, () => console.log("Servidor activo en", port));
-
-
-// ruta/send para respuesta de recordario
-
+/* ============================================================
+   ENDPOINT /send -> NOTIFICACIONES POR CANAL
+   ============================================================ */
 app.post("/send", express.json(), (req, res) => {
   const { event, title, description, channel } = req.body;
 
-  wss.clients.forEach(client => {
+  console.log("Enviando notificación al canal:", channel);
+
+  wss.clients.forEach((client) => {
     if (client.readyState === 1 && client.channel === channel) {
-      client.send(JSON.stringify({ event, title, description, channel }));
+      client.send(
+        JSON.stringify({
+          event,
+          title,
+          description,
+          channel,
+        })
+      );
     }
   });
 
   res.json({ ok: true });
 });
 
-
-// manejo de mensajes entrantes de WebSocket
-
-ws.on("message", (raw) => {
-  const data = JSON.parse(raw);
-
-  // Registro del canal
-  if (data.type === "register") {
-    ws.channel = data.channel || "global";
-    console.log("Cliente registrado en canal:", ws.channel);
-  }
+/* ============================================================
+   ENDPOINT DE STATUS (PARA EXTENSION / POPUP)
+   ============================================================ */
+app.get("/", (req, res) => {
+  res.json({
+    ok: true,
+    status: "online",
+    message: "Servidor activo",
+    time: new Date().toISOString(),
+  });
 });
+
+/* ============================================================
+   INICIO DEL SERVIDOR
+   ============================================================ */
+const port = process.env.PORT || 8080;
+server.listen(port, () => console.log("Servidor activo en", port));
