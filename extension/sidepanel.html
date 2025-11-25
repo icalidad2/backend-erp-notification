@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notificaciones</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary: #1d4ed8;
+        --primary-light: #e0e7ff;
+        --success: #0eb857;
+        --success-light: #dcfce7;
+        --error: #ef4444;
+        --error-light: #fee2e2;
+
+        --text: #1a1a1a;
+        --text-secondary: #64748b;
+        --card-bg: #ffffff;
+        --border: #e5e7eb;
+
+        --radius: 14px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #f5f7fa;
+        font-family: "Inter", sans-serif;
+        color: var(--text);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* HEADER */
+      .header {
+        padding: 16px 20px;
+        font-size: 18px;
+        font-weight: 700;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(8px);
+      }
+
+      .header-icon {
+        width: 34px;
+        height: 34px;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 16px;
+      }
+
+      /* STATUS */
+      #status {
+        margin: 16px 20px;
+        padding: 12px 16px;
+        border-radius: var(--radius);
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #status.state-ok {
+        background: var(--success-light);
+        color: #065f46;
+        border-left: 4px solid var(--success);
+      }
+
+      #status.state-bad {
+        background: var(--error-light);
+        color: #991b1b;
+        border-left: 4px solid var(--error);
+      }
+
+      #status.state-loading {
+        background: var(--primary-light);
+        color: var(--primary);
+        border-left: 4px solid var(--primary);
+      }
+
+      #list {
+        flex: 1;
+        padding: 0 20px 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        padding: 16px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      }
+
+      .title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+
+      .desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+      }
+
+      .time {
+        font-size: 11px;
+        color: #94a3b8;
+      }
+
+      .card-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+      }
+
+      .delete-btn {
+        background: transparent;
+        border: none;
+        color: #cbd5e1;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+      }
+
+      .delete-btn:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #ef4444;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">
+      <div class="header-icon">🔔</div>
+      Notificaciones
+    </div>
+
+    <div id="status" class="state-loading">⏳ Verificando conexión…</div>
+
+    <div id="list"></div>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

@@ -9,10 +9,12 @@ function connect() {
   ws.onopen = () => {
     console.log("WS conectado.");
 
-    ws.send(JSON.stringify({
-      type: "register",
-      email: "icalidad2@mecanoplastica.com.mx"
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "register",
+        email: "icalidad2@mecanoplastica.com.mx",
+      })
+    );
   };
 
   ws.onmessage = (event) => {
@@ -21,20 +23,23 @@ function connect() {
     if (data.event === "ping") return;
 
     if (data.event === "notification") {
+      const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
       chrome.notifications.create({
         type: "basic",
         iconUrl: "icon.png",
         title: data.title,
         message: data.description,
-        priority: 2
+        priority: 2,
       });
 
       chrome.storage.local.get(["history"], (res) => {
         const history = res.history || [];
         history.push({
+          id,
           title: data.title,
           description: data.description,
-          time: Date.now()
+          time: Date.now(),
         });
         chrome.storage.local.set({ history });
       });
@@ -72,4 +77,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "alive?") {
     sendResponse({ ok: true });
   }
+});
+
+chrome.action.onClicked.addListener(() => {
+  chrome.windows.getCurrent((win) => {
+    chrome.sidePanel.open({
+      windowId: win.id,
+    });
+  });
 });

@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   const serverStatus = document.getElementById("serverStatus");
   const serverDot = document.getElementById("serverDot");
   const updatedAt = document.getElementById("updatedAt");
@@ -7,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Verificar servidor
   fetch("https://backend-erp-notification.onrender.com/")
-    .then(res => {
+    .then((res) => {
       if (!res.ok) throw new Error("Server down");
 
       serverStatus.innerHTML = `SERVER ONLINE <span class="dot green"></span>`;
@@ -28,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Verificar extensión
-  chrome.runtime.sendMessage({ type: "alive?" }, response => {
+  chrome.runtime.sendMessage({ type: "alive?" }, (response) => {
     if (chrome.runtime.lastError) {
       extStatus.innerHTML = `EXTENSIÓN INACTIVA <span class="dot red"></span>`;
       extStatus.classList.add("error");
@@ -40,5 +39,21 @@ document.addEventListener("DOMContentLoaded", () => {
       extStatus.classList.add("ok");
     }
   });
+});
 
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("openSidePanel");
+
+  btn.addEventListener("click", async () => {
+    try {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (!tab?.id) throw new Error("No se pudo obtener la pestaña activa");
+      await chrome.sidePanel.open({ tabId: tab.id });
+    } catch (err) {
+      console.error("Error al abrir el side panel:", err);
+    }
+  });
 });
