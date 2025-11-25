@@ -1,50 +1,75 @@
-let ws;
+let ws = null;
+let reconnectTimeout = null;
 
 function connect() {
+  console.log("Conectando WebSocket...");
+
   ws = new WebSocket("wss://backend-erp-notification.onrender.com");
 
   ws.onopen = () => {
-    console.log("Conectado al servidor Render");
+    console.log("WS conectado.");
 
     ws.send(JSON.stringify({
       type: "register",
       email: "icalidad2@mecanoplastica.com.mx"
     }));
-
-    console.log("Usuario registrado: icalidad2@mecanoplastica.com.mx");
   };
 
   ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
+    const data = JSON.parse(event.data);
 
-      if (data.event === "notification") {
-        // Enviar al popup para mostrar el toast HTML
-        chrome.runtime.sendMessage({
-          toast: {
-            title: data.title,
-            description: data.description
-          }
-        });
+    if (data.event === "ping") return;
 
-        // Notificación nativa opcional
-        chrome.notifications.create({
-          type: "basic",
-          iconUrl: "icon.png",
+    if (data.event === "notification") {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "icon.png",
+        title: data.title,
+        message: data.description,
+        priority: 2
+      });
+
+      chrome.storage.local.get(["history"], (res) => {
+        const history = res.history || [];
+        history.push({
           title: data.title,
-          message: data.description,
-          priority: 2
+          description: data.description,
+          time: Date.now()
         });
-      }
-    } catch (err) {
-      console.error("Error en mensaje:", err);
+        chrome.storage.local.set({ history });
+      });
     }
   };
 
   ws.onclose = () => {
-    console.log("Desconectado — reconectando en 3s...");
-    setTimeout(connect, 3000);
+    console.log("WS desconectado. Reintentando en 3s...");
+    reconnectTimeout = setTimeout(connect, 3000);
+  };
+
+  ws.onerror = (err) => {
+    console.log("WS ERROR:", err);
+    ws.close();
   };
 }
 
+// 🔥 Mantener vivo el background con alarms
+chrome.alarms.create("wsKeepAlive", { periodInMinutes: 1 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "wsKeepAlive") {
+    if (!ws || ws.readyState === WebSocket.CLOSED) {
+      console.log("Reconectando WS desde alarm...");
+      connect();
+    }
+  }
+});
+
+// iniciar
 connect();
+
+// ⭐ NECESARIO PARA QUE EL POPUP NO ROMPA EL SERVICE WORKER
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "alive?") {
+    sendResponse({ ok: true });
+  }
+});

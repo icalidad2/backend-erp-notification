@@ -1,24 +1,44 @@
-function showToast(title, description) {
-  const container = document.getElementById("toast-container");
+document.addEventListener("DOMContentLoaded", () => {
 
-  const toast = document.createElement("div");
-  toast.className = "toast";
+  const serverStatus = document.getElementById("serverStatus");
+  const serverDot = document.getElementById("serverDot");
+  const updatedAt = document.getElementById("updatedAt");
+  const extStatus = document.getElementById("ext-status");
 
-  toast.innerHTML = `
-    <div class="toast-title">${title}</div>
-    <div class="toast-desc">${description}</div>
-  `;
+  // Verificar servidor
+  fetch("https://backend-erp-notification.onrender.com/")
+    .then(res => {
+      if (!res.ok) throw new Error("Server down");
 
-  container.appendChild(toast);
+      serverStatus.innerHTML = `SERVER ONLINE <span class="dot green"></span>`;
+      serverStatus.classList.remove("error");
+      serverStatus.classList.add("ok");
+      serverDot.classList.remove("red");
+      serverDot.classList.add("green");
+    })
+    .catch(() => {
+      serverStatus.innerHTML = `SERVER OFFLINE <span class="dot red"></span>`;
+      serverStatus.classList.remove("ok");
+      serverStatus.classList.add("error");
+      serverDot.classList.remove("green");
+      serverDot.classList.add("red");
+    })
+    .finally(() => {
+      updatedAt.innerText = new Date().toLocaleTimeString("es-MX");
+    });
 
-  setTimeout(() => {
-    toast.remove();
-  }, 5000);
-}
+  // Verificar extensión
+  chrome.runtime.sendMessage({ type: "alive?" }, response => {
+    if (chrome.runtime.lastError) {
+      extStatus.innerHTML = `EXTENSIÓN INACTIVA <span class="dot red"></span>`;
+      extStatus.classList.add("error");
+      return;
+    }
 
-// Escuchar mensajes desde background.js
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.toast) {
-    showToast(msg.toast.title, msg.toast.description);
-  }
+    if (response?.ok) {
+      extStatus.innerHTML = `EXTENSIÓN ACTIVA <span class="dot green"></span>`;
+      extStatus.classList.add("ok");
+    }
+  });
+
 });

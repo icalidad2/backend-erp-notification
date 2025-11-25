@@ -3,14 +3,20 @@
   "name": "AppSheet Notify",
   "version": "1.0",
   "description": "Notificaciones en tiempo real desde AppSheet usando WebSockets y un popup personalizado.",
-  "permissions": ["notifications"],
+  
+  "permissions": [
+    "notifications",
+    "alarms",
+    "storage"
+  ],
 
   "background": {
     "service_worker": "background.js"
   },
 
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
   },
 
   "icons": {

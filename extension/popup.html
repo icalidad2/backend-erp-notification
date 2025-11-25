@@ -1,12 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" href="popup.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 12px;
+      background: #0d0d0d;
+      color: #d0d0d0;
+      font-family: "JetBrains Mono", monospace;
+      width: 340px;
+    }
+
+    .card {
+      border: 1px solid #1f1f1f;
+      background: #141414;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+    }
+
+    .header {
+      font-size: 14px;
+      color: #7dcfff;
+      margin-bottom: 8px;
+    }
+
+    .status {
+      font-size: 13px;
+    }
+
+    .status.ok {
+      color: #a3ffb5;
+    }
+
+    .status.error {
+      color: #ff6b6b;
+    }
+
+    .updated {
+      font-size: 10px;
+      margin-top: 8px;
+      color: #888;
+      text-align: right;
+    }
+
+    .dot {
+      height: 8px;
+      width: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 6px;
+    }
+
+    .dot.green {
+      background: #82ff94;
+    }
+
+    .dot.red {
+      background: #ff5353;
+    }
+  </style>
+
 </head>
 <body>
 
-<div id="toast-container"></div>
+  <div class="card">
+    <h3>SERVER STATUS <span id="serverDot" class="dot red"></span></h3>
+    <p id="serverStatus">Checking...</p>
+    <small id="updatedAt"></small>
+  </div>
 
-<script src="popup.js"></script>
+  <div class="card">
+    <h3>EXTENSION STATUS</h3>
+    <p id="ext-status">Checking...</p>
+  </div>
+
+  <script src="popup.js"></script>
+
 </body>
 </html>
