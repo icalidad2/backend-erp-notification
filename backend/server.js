@@ -88,18 +88,26 @@ server.listen(port, () => console.log("Servidor activo en", port));
 // ruta/send para respuesta de recordario
 
 app.post("/send", express.json(), (req, res) => {
-  const { event, title, description } = req.body;
+  const { event, title, description, channel } = req.body;
 
-  if (!event || !title) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-
-  // reenviar a todos los clientes WebSocket
-  wss.clients.forEach((client) => {
-    if (client.readyState === 1) {
-      client.send(JSON.stringify({ event, title, description }));
+  wss.clients.forEach(client => {
+    if (client.readyState === 1 && client.channel === channel) {
+      client.send(JSON.stringify({ event, title, description, channel }));
     }
   });
 
-  res.json({ ok: true, message: "Notification broadcasted" });
+  res.json({ ok: true });
+});
+
+
+// manejo de mensajes entrantes de WebSocket
+
+ws.on("message", (raw) => {
+  const data = JSON.parse(raw);
+
+  // Registro del canal
+  if (data.type === "register") {
+    ws.channel = data.channel || "global";
+    console.log("Cliente registrado en canal:", ws.channel);
+  }
 });

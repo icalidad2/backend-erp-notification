@@ -9,12 +9,10 @@ function connect() {
   ws.onopen = () => {
     console.log("WS conectado.");
 
-    ws.send(
-      JSON.stringify({
-        type: "register",
-        email: "icalidad2@mecanoplastica.com.mx",
-      })
-    );
+    ws.send(JSON.stringify({
+      type: "register",
+      channel: "calidad"
+    }));
   };
 
   ws.onmessage = (event) => {
