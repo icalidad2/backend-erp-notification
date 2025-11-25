@@ -83,3 +83,23 @@ app.get("/", (req, res) => {
 // ======================================
 const port = process.env.PORT || 8080;
 server.listen(port, () => console.log("Servidor activo en", port));
+
+
+// ruta/send para respuesta de recordario
+
+app.post("/send", express.json(), (req, res) => {
+  const { event, title, description } = req.body;
+
+  if (!event || !title) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  // reenviar a todos los clientes WebSocket
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(JSON.stringify({ event, title, description }));
+    }
+  });
+
+  res.json({ ok: true, message: "Notification broadcasted" });
+});
