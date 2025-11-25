@@ -12,6 +12,9 @@ const wss = new WebSocketServer({ server });
 
 const clients = new Map();
 
+// ======================================
+//  WEBSOCKET CONNECTIONS
+// ======================================
 wss.on("connection", ws => {
   ws.on("message", msg => {
     try {
@@ -33,6 +36,16 @@ wss.on("connection", ws => {
   });
 });
 
+// ======================================
+//  ENDPOINT KEEP-ALIVE (PINGS)
+// ======================================
+app.get("/ping", (req, res) => {
+  res.status(200).send("pong");
+});
+
+// ======================================
+//  NOTIFICACIÓN DESDE APPSHEET
+// ======================================
 app.post("/notification", (req, res) => {
   const { email, title, description } = req.body;
 
@@ -53,5 +66,8 @@ app.post("/notification", (req, res) => {
   res.json({ ok: true });
 });
 
+// ======================================
+//  SERVER LISTEN
+// ======================================
 const port = process.env.PORT || 8080;
 server.listen(port, () => console.log("Servidor activo en", port));
